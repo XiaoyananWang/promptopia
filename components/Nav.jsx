@@ -1,7 +1,6 @@
 //Will be using client-based functionalities, s.a. hooks in this case, need to add the "use client" directive
 "use client";
 
-
 // Link is going to allow you to move to the other pages of the application
 import Link from "next/link";
 // Image will automatically optimize the images for you
@@ -11,10 +10,7 @@ import { useState, useEffect } from "react";
 // Utility functions that make the sign in and sign up flow simple
 import { signIn, signOut, useSession, getProviders } from "next-auth/react";
 
-
 const Nav = () => {
-
-  
   // The navbar needs to know if the user is logged in or not to know which buttons to show
   const isUserLoggedIn = true;
 
@@ -31,12 +27,12 @@ const Nav = () => {
     setProviders();
   }, []);
 
+  // The useState to open the mobile navbar
+  const [toggleDropdown, setToggleDropdown] = useState(false);
 
   return (
     //Semantic nav tag
     <nav className="flex-between w-full mb-16 pt-3">
-
-
       {/* The root route */}
       <Link href="/" className="flex gap-2 flex-center">
         {/* Show the logo of the application  */}
@@ -54,11 +50,10 @@ const Nav = () => {
         <p className="logo_text">Promptopia</p>
       </Link>
 
-
       {/* Desktop Navigation */}
       {/* Since this is the navigation for the desktops, 
       On small devices, the nav is going to be hidden;
-       When the viewport width reaches the sm breakpoint size or larger, the div will become a flex container and be displayed  */}
+      sm:flex hidden means, by default, all the content will be hidden, but when the viewport width reaches sm or largerm the <div> will become a flex container, and be displayed.*/}
       <div className="sm:flex hidden">
         {/* We need to know whether a use is logged in or not, so that we know which buttons to show */}
         {isUserLoggedIn ? (
@@ -102,15 +97,92 @@ const Nav = () => {
                     signIn(provider.id);
                   }}
                   className="black_btn"
-                >Sign In</button>;
+                >
+                  Sign In
+                </button>;
               })}
           </>
         )}
       </div>
-      
 
       {/* Mobile Navigation */}
-
+      {/* sm:hidden flex relative means by default, the content is flex relative, but if the viewport is sm or larger, it will be hidden */}
+      <div className="sm:hidden flex relative">
+        {isUserLoggedIn ? (
+          // If the user logged in, render the profile icon
+          <div className="flex">
+            <Image
+              src="/assets/images/logo.svg"
+              width={37}
+              height={37}
+              className="round-full"
+              alt="profile"
+              // This onClick will open the dropdown for the mobile navigation
+              // When setToggleDropdown to its opposite, don't change react state using the previous version, i.e. !toggleDropdown, because it might lead to an unexpected behavior
+              // You should open a new callback function within the state and get the previous state then set it to its opposite.
+              // If you use curly braces {} in an arrow function, you need to explicitly return a value.
+              //     (prev) => {
+              //        return !prev;
+              //      }
+              onClick={() => {
+                setToggleDropdown((prev) => {
+                  return !prev;
+                });
+              }}
+            />
+            {/* If toggleDropdown is true, which is the dropdown is opened, if clicked again, it will close it */}
+            {toggleDropdown && (
+              <div className="dropdown">
+                <Link
+                  href="/profile"
+                  className="dropdown_link"
+                  onClick={() => {
+                    setToggleDropdown(false);
+                  }}
+                >
+                  My Profile
+                </Link>
+                <Link
+                  href="/create-prompt"
+                  className="dropdown_link"
+                  onClick={() => {
+                    setToggleDropdown(false);
+                  }}
+                >
+                  Create Prompt
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    signOut();
+                    setToggleDropdown(false);
+                  }}
+                  className="mt-5 w-full black_btn"
+                >
+                  Sign Out
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {providers &&
+              Object.values(providers).map((provider) => {
+                <button
+                  type="button"
+                  key={provider.name}
+                  // The onClick function will be a call back function that calls the signIn function and pass in the provider's id
+                  onClick={() => {
+                    signIn(provider.id);
+                  }}
+                  className="black_btn"
+                >
+                  Sign In
+                </button>;
+              })}
+          </>
+        )}
+      </div>
     </nav>
   );
 };
